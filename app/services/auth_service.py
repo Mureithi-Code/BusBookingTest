@@ -6,6 +6,10 @@ from flask import jsonify
 class AuthService:
     @staticmethod
     def register(data):
+        existing_user = User.query.filter_by(email=data['email']).first()
+        if existing_user:
+            return jsonify({"error": "User with this email already exists"}), 400
+        
         hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
         new_user = User(name=data['name'], email=data['email'], password_hash=hashed_password, role=data['role'])
         db.session.add(new_user)

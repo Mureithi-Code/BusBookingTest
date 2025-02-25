@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from app.extensions import db, jwt, cors, bcrypt  # Use existing instances
 from flask_migrate import Migrate  # Add Migrate

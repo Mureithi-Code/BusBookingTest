@@ -6,6 +6,9 @@ from app.config import Config
 def create_app():
     """Factory function to create and configure the Flask app."""
     app = Flask(__name__)
+    
+    port = int(os.environ.get("PORT", 8000))
+    app.run(host="0.0.0.0", port=port)
 
     # Load Configuration
     app.config.from_object(Config)

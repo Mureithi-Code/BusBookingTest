@@ -9,7 +9,8 @@ class Register(Resource):
     def post(self):
         """Register a new user"""
         data = request.get_json()
-        return AuthService.register(data)
+        response, status_code = AuthService.register(data)
+        return response, status_code
 
 @auth_ns.route("/login")
 class Login(Resource):

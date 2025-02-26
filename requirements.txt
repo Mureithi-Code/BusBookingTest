@@ -30,7 +30,7 @@ python-dotenv==1.0.1
 pytz==2025.1
 PyYAML==6.0.2
 referencing==0.35.1
-rpds-py==0.23.1
+rpds-py==0.20.1
 six==1.17.0
 SQLAlchemy==2.0.38
 typing_extensions==4.12.2

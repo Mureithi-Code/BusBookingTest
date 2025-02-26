@@ -5,6 +5,8 @@ from flask import jsonify
 from flask import current_app
 from werkzeug.security import generate_password_hash
 
+
+
 class AuthService:
     @staticmethod
     def register(data):
@@ -12,7 +14,9 @@ class AuthService:
         if existing_user:
             return {"error": "User with this email already exists"}, 400
         
-        hashed_password = generate_password_hash(data.get('password'))
+        # ✅ Ensure password is hashed correctly
+        hashed_password = bcrypt.generate_password_hash(data.get('password')).decode('utf-8')
+        
         new_user = User(
             name=data.get('name'), 
             email=data.get('email'), 

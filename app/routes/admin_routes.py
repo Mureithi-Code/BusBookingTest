@@ -1,17 +1,25 @@
-from flask import Blueprint, request
+from flask_restx import Namespace, Resource
+from flask import request
 from app.services.admin_service import AdminService
 
-admin_bp = Blueprint('admin', __name__)
+# Define Namespace for Swagger documentation
+admin_ns = Namespace("Admin", description="Admin Management Endpoints")
 
-@admin_bp.route('/remove_driver/<int:driver_id>', methods=['DELETE'])
-def remove_driver(driver_id):
-    return AdminService.remove_driver(driver_id)
+@admin_ns.route("/remove_driver/<int:driver_id>")
+class RemoveDriver(Resource):
+    def delete(self, driver_id):
+        """Remove a driver by ID"""
+        return AdminService.remove_driver(driver_id)
 
-@admin_bp.route('/cancel_route/<int:route_id>', methods=['PUT'])
-def cancel_route(route_id):
-    return AdminService.cancel_route(route_id)
+@admin_ns.route("/cancel_route/<int:route_id>")
+class CancelRoute(Resource):
+    def put(self, route_id):
+        """Cancel a bus route by ID"""
+        return AdminService.cancel_route(route_id)
 
-@admin_bp.route('/reply_message/<int:message_id>', methods=['POST'])
-def reply_message(message_id):
-    data = request.get_json()
-    return AdminService.reply_message(message_id, data)
+@admin_ns.route("/reply_message/<int:message_id>")
+class ReplyMessage(Resource):
+    def post(self, message_id):
+        """Reply to a customer message"""
+        data = request.get_json()
+        return AdminService.reply_message(message_id, data)

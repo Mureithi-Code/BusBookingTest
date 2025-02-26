@@ -1,14 +1,19 @@
-from flask import Blueprint, request, jsonify
+from flask_restx import Namespace, Resource
+from flask import request
 from app.services.auth_service import AuthService
 
-auth_bp = Blueprint('auth', __name__)
+auth_ns = Namespace("Auth", description="Authentication Endpoints")
 
-@auth_bp.route('/register', methods=['POST'])
-def register():
-    data = request.get_json()
-    return AuthService.register(data)
+@auth_ns.route("/register")
+class Register(Resource):
+    def post(self):
+        """Register a new user"""
+        data = request.get_json()
+        return AuthService.register(data)
 
-@auth_bp.route('/login', methods=['POST'])
-def login():
-    data = request.get_json()
-    return AuthService.login(data)
+@auth_ns.route("/login")
+class Login(Resource):
+    def post(self):
+        """User login"""
+        data = request.get_json()
+        return AuthService.login(data)

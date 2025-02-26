@@ -1,19 +1,27 @@
-from flask import Blueprint, request
+from flask_restx import Namespace, Resource
+from flask import request
 from app.services.driver_service import DriverService
 
-driver_bp = Blueprint('driver', __name__)
+# Define Namespace for Swagger documentation
+driver_ns = Namespace("Driver", description="Driver Bus Management Endpoints")
 
-@driver_bp.route('/add_bus', methods=['POST'])
-def add_bus():
-    data = request.get_json()
-    return DriverService.add_bus(data)
+@driver_ns.route("/add_bus")
+class AddBus(Resource):
+    def post(self):
+        """Add a new bus"""
+        data = request.get_json()
+        return DriverService.add_bus(data)
 
-@driver_bp.route('/pick_route', methods=['PUT'])
-def pick_route():
-    data = request.get_json()
-    return DriverService.pick_route(data)
+@driver_ns.route("/pick_route")
+class PickRoute(Resource):
+    def put(self):
+        """Pick and assign a route for a bus"""
+        data = request.get_json()
+        return DriverService.pick_route(data)
 
-@driver_bp.route('/assign_cost/<int:bus_id>', methods=['PUT'])
-def assign_cost(bus_id):
-    data = request.get_json()
-    return DriverService.assign_cost(bus_id, data)
+@driver_ns.route("/assign_cost/<int:bus_id>")
+class AssignCost(Resource):
+    def put(self, bus_id):
+        """Assign cost to a bus by bus ID"""
+        data = request.get_json()
+        return DriverService.assign_cost(bus_id, data)

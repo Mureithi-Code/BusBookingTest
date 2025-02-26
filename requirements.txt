@@ -25,7 +25,7 @@ MarkupSafe==2.1.5
 mistune==3.1.2
 packaging==24.2
 psycopg2-binary==2.9.9
-PyJWT==2.10.1
+PyJWT==2.9.0
 python-dotenv==1.0.1
 pytz==2025.1
 PyYAML==6.0.2

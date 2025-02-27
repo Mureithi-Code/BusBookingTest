@@ -23,3 +23,22 @@ class ReplyMessage(Resource):
         """Reply to a customer message"""
         data = request.get_json()
         return AdminService.reply_message(message_id, data)
+    
+@admin_ns.route("/drivers")
+class DriverList(Resource):
+    def get(self):
+        """Get all drivers"""
+        return AdminService.get_all_drivers()
+
+@admin_ns.route("/routes")
+class RouteList(Resource):
+    def get(self):
+        """Get all routes"""
+        return AdminService.get_all_routes()
+
+@admin_ns.route("/messages")
+class MessageList(Resource):
+    def get(self):
+        """Get all customer messages"""
+        return AdminService.get_all_messages()
+

@@ -8,12 +8,29 @@ from flask import jsonify
 class AdminService:
     @staticmethod
     def remove_driver(driver_id):
-        driver = User.query.filter_by(id=driver_id, role="Driver").first()
-        if not driver:
-            return jsonify({"error": "Driver not found"}), 404
-        db.session.delete(driver)
-        db.session.commit()
-        return jsonify({"message": "Driver removed successfully"}), 200
+        try:
+            print(f"Attempting to remove driver with ID: {driver_id}")
+
+            driver = User.query.filter_by(id=driver_id, role="Driver").first()
+            if not driver:
+                return {"error": "Driver not found"}, 404
+
+            # Delete related data (routes, messages, etc.)
+            from app.models.route import Route
+            Route.query.filter_by(driver_id=driver_id).delete()
+
+            from app.models.message import Message
+            Message.query.filter((Message.sender_id == driver_id) | (Message.receiver_id == driver_id)).delete()
+
+            db.session.delete(driver)
+            db.session.commit()
+
+            return {"message": "Driver removed successfully"}, 200
+
+        except Exception as e:
+            print(f"Error: {e}")
+            db.session.rollback()
+            return {"error": "Internal server error"}, 500
 
     @staticmethod
     def cancel_route(route_id):

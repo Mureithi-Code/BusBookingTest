@@ -9,8 +9,9 @@ admin_ns = Namespace("Admin", description="Admin Management Endpoints")
 class RemoveDriver(Resource):
     def delete(self, driver_id):
         """Remove a driver by ID"""
-        return AdminService.remove_driver(driver_id)
-
+        response, status = AdminService.remove_driver(driver_id)
+        return response, status 
+    
 @admin_ns.route("/cancel_route/<int:route_id>")
 class CancelRoute(Resource):
     def put(self, route_id):

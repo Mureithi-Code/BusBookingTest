@@ -11,6 +11,10 @@ def create_app():
     
     # Load Configuration
     app.config.from_object(Config)
+    
+    #Enable CORS
+    cors.init_app(app, resources={r"/*": {"origins": "http://localhost:3000"}})
+
 
     # Initialize Extensions
     db.init_app(app)

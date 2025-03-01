@@ -1,39 +1,103 @@
 from flask_restx import Namespace, Resource
-from flask import request
+from flask import request, jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.driver_service import DriverService
 
-driver_ns = Namespace("Driver", description="Driver Bus Management Endpoints")
+driver_ns = Namespace("Driver", description="Driver Dashboard Endpoints")
 
-@driver_ns.route("/add_bus")
-class AddBus(Resource):
+
+@driver_ns.route("/routes")
+class DriverRoutes(Resource):
+    @jwt_required()
     def post(self):
+        """Create a new route"""
         data = request.get_json()
-        return DriverService.add_bus(data)
+        driver_id = get_jwt_identity()
+        result = DriverService.create_route(driver_id, data)
+        return jsonify(result)
 
-@driver_ns.route("/pick_route")
-class PickRoute(Resource):
-    def put(self):
-        data = request.get_json()
-        return DriverService.pick_route(data)
+    @jwt_required()
+    def get(self):
+        """Get all routes created by logged-in driver"""
+        driver_id = get_jwt_identity()
+        result = DriverService.get_driver_routes(driver_id)
+        return jsonify(result)
 
-@driver_ns.route("/assign_cost/<int:bus_id>")
-class AssignCost(Resource):
-    def put(self, bus_id):
-        data = request.get_json()
-        return DriverService.assign_cost(bus_id, data)
 
-@driver_ns.route("/buses/<int:driver_id>")
-class DriverBuses(Resource):
+@driver_ns.route("/routes/<int:driver_id>")
+class SpecificDriverRoutes(Resource):
     def get(self, driver_id):
-        return DriverService.get_driver_buses(driver_id)
+        """Get all routes for a specific driver"""
+        result = DriverService.get_driver_routes(driver_id)
+        return jsonify(result)
 
-@driver_ns.route("/update_bus/<int:bus_id>")
-class UpdateBus(Resource):
-    def put(self, bus_id):
+
+@driver_ns.route("/buses")
+class DriverBuses(Resource):
+    @jwt_required()
+    def post(self):
+        """Add a new bus"""
         data = request.get_json()
-        return DriverService.update_bus(bus_id, data)
+        driver_id = get_jwt_identity()
+        result = DriverService.add_bus(driver_id, data)
+        return jsonify(result)
 
-@driver_ns.route("/remove_bus/<int:bus_id>")
-class RemoveBus(Resource):
+    @jwt_required()
+    def get(self):
+        """Get all buses owned by logged-in driver"""
+        driver_id = get_jwt_identity()
+        result = DriverService.get_driver_buses(driver_id)
+        return jsonify(result)
+
+
+@driver_ns.route("/bus/<int:bus_id>/seats")
+class BusSeats(Resource):
+    @jwt_required()
+    def get(self, bus_id):
+        """View booked & available seats for a bus owned by the logged-in driver"""
+        driver_id = get_jwt_identity()
+        result = DriverService.get_bus_seats(driver_id, bus_id)
+        return jsonify(result)
+
+
+@driver_ns.route("/bus/<int:bus_id>/assign_route")
+class AssignRoute(Resource):
+    @jwt_required()
+    def put(self, bus_id):
+        """Assign a bus to a route (only owned buses)"""
+        data = request.get_json()
+        driver_id = get_jwt_identity()
+        result = DriverService.assign_bus_to_route(driver_id, bus_id, data)
+        return jsonify(result)
+
+
+@driver_ns.route("/bus/<int:bus_id>/set_departure_time")
+class SetDepartureTime(Resource):
+    @jwt_required()
+    def put(self, bus_id):
+        """Set departure time for a bus (only owned buses)"""
+        data = request.get_json()
+        driver_id = get_jwt_identity()
+        result = DriverService.set_departure_time(driver_id, bus_id, data)
+        return jsonify(result)
+
+
+@driver_ns.route("/bus/<int:bus_id>/set_ticket_price")
+class SetTicketPrice(Resource):
+    @jwt_required()
+    def put(self, bus_id):
+        """Set or update ticket price per seat for a bus (only owned buses)"""
+        data = request.get_json()
+        driver_id = get_jwt_identity()
+        result = DriverService.set_ticket_price(driver_id, bus_id, data)
+        return jsonify(result)
+
+
+@driver_ns.route("/bus/<int:bus_id>")
+class DeleteBus(Resource):
+    @jwt_required()
     def delete(self, bus_id):
-        return DriverService.remove_bus(bus_id)
+        """Delete a bus owned by the logged-in driver"""
+        driver_id = get_jwt_identity()
+        result = DriverService.delete_bus(driver_id, bus_id)
+        return jsonify(result)

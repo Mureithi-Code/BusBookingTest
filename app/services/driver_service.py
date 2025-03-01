@@ -1,68 +1,131 @@
 from app.extensions import db
 from app.models.bus import Bus
-from flask import jsonify
+from app.models.route import Route
+from app.models.booking import Booking
+
 
 class DriverService:
+
     @staticmethod
-    def add_bus(data):
+    def create_route(driver_id, data):
+        """Create a new route assigned to the logged-in driver"""
+        new_route = Route(
+            start_location=data['start_location'],
+            destination=data['destination'],
+            driver_id=driver_id
+        )
+        db.session.add(new_route)
+        db.session.commit()
+        return {"message": "Route created successfully"}
+
+    @staticmethod
+    def get_driver_routes(driver_id):
+        """Get all routes created by this driver"""
+        routes = Route.query.filter_by(driver_id=driver_id).all()
+        route_list = [
+            {
+                "id": route.id,
+                "start_location": route.start_location,
+                "destination": route.destination,
+                "departure_time": route.departure_time
+            }
+            for route in routes
+        ]
+        return {"routes": route_list}
+
+    @staticmethod
+    def add_bus(driver_id, data):
+        """Add a new bus owned by this driver"""
         new_bus = Bus(
-            driver_id=data['driver_id'],
+            driver_id=driver_id,
             bus_number=data['bus_number'],
             capacity=data['capacity'],
             available_seats=data['capacity'],
-            ticket_price=data.get('ticket_price')
+            ticket_price=data.get('ticket_price', 0)
         )
         db.session.add(new_bus)
         db.session.commit()
-        return {"message": "Bus added successfully"}, 201
-
-    @staticmethod
-    def pick_route(data):
-        bus = Bus.query.get(data['bus_id'])
-        if not bus:
-            return {"error": "Bus not found"}, 404
-        bus.route_id = data['route_id']
-        db.session.commit()
-        return {"message": "Route assigned successfully"}, 200
-
-    @staticmethod
-    def assign_cost(bus_id, data):
-        bus = Bus.query.get(bus_id)
-        if not bus:
-            return {"error": "Bus not found"}, 404
-        bus.ticket_price = data['cost']
-        db.session.commit()
-        return {"message": "Ticket price updated"}, 200
+        return {"message": "Bus added successfully"}
 
     @staticmethod
     def get_driver_buses(driver_id):
+        """Get all buses owned by this driver"""
         buses = Bus.query.filter_by(driver_id=driver_id).all()
-        return [{"id": bus.id, 
-                 "bus_number": bus.bus_number, 
-                 "capacity": bus.capacity, 
-                 "available_seats": bus.available_seats, 
-                 "ticket_price": bus.ticket_price,
-                 "route_id": bus.route_id} for bus in buses], 200
+        bus_list = [
+            {
+                "id": bus.id,
+                "bus_number": bus.bus_number,
+                "capacity": bus.capacity,
+                "available_seats": bus.available_seats,
+                "route_id": bus.route_id,
+                "departure_time": bus.departure_time,
+                "ticket_price": bus.ticket_price
+            }
+            for bus in buses
+        ]
+        return {"buses": bus_list}
 
     @staticmethod
-    def update_bus(bus_id, data):
-        bus = Bus.query.get(bus_id)
+    def get_bus_seats(driver_id, bus_id):
+        """Get available and booked seats for a specific bus owned by this driver"""
+        bus = Bus.query.filter_by(id=bus_id, driver_id=driver_id).first()
         if not bus:
-            return {"error": "Bus not found"}, 404
+            return {"error": "Bus not found or you don't own this bus"}, 404
 
-        bus.bus_number = data.get('bus_number', bus.bus_number)
-        bus.capacity = data.get('capacity', bus.capacity)
-        bus.available_seats = data.get('available_seats', bus.available_seats)
-        bus.ticket_price = data.get('ticket_price', bus.ticket_price)
+        booked_seats = Booking.query.filter_by(bus_id=bus_id).count()
+
+        return {
+            "bus_id": bus.id,
+            "bus_number": bus.bus_number,
+            "total_seats": bus.capacity,
+            "available_seats": bus.available_seats,
+            "booked_seats": booked_seats
+        }
+
+    @staticmethod
+    def assign_bus_to_route(driver_id, bus_id, data):
+        """Assign bus to a route"""
+        bus = Bus.query.filter_by(id=bus_id, driver_id=driver_id).first()
+        if not bus:
+            return {"error": "Bus not found or you don't own this bus"}, 404
+
+        route = Route.query.filter_by(id=data['route_id'], driver_id=driver_id).first()
+        if not route:
+            return {"error": "Route not found or you don't own this route"}, 404
+
+        bus.route_id = route.id
         db.session.commit()
-
-        return {"message": "Bus updated successfully"}, 200
+        return {"message": "Bus assigned to route successfully"}
 
     @staticmethod
-    def remove_bus(bus_id):
-        bus = Bus.query.get(bus_id)
+    def set_departure_time(driver_id, bus_id, data):
+        """Set the departure time for a bus"""
+        bus = Bus.query.filter_by(id=bus_id, driver_id=driver_id).first()
         if not bus:
-            return {"error": "Bus not found"}, 404
+            return {"error": "Bus not found or you don't own this bus"}, 404
+
+        bus.departure_time = data['departure_time']
+        db.session.commit()
+        return {"message": "Departure time set successfully"}
+
+    @staticmethod
+    def set_ticket_price(driver_id, bus_id, data):
+        """Set or update ticket price per seat for a bus"""
+        bus = Bus.query.filter_by(id=bus_id, driver_id=driver_id).first()
+        if not bus:
+            return {"error": "Bus not found or you don't own this bus"}, 404
+
+        bus.ticket_price = data['ticket_price']
+        db.session.commit()
+        return {"message": "Ticket price updated successfully"}
+
+    @staticmethod
+    def delete_bus(driver_id, bus_id):
+        """Delete a bus if owned by the driver"""
+        bus = Bus.query.filter_by(id=bus_id, driver_id=driver_id).first()
+        if not bus:
+            return {"error": "Bus not found or you don't own this bus"}, 404
+
         db.session.delete(bus)
         db.session.commit()
-        return {"message": "Bus removed successfully"}, 200
+        return {"message": "Bus deleted successfully"}

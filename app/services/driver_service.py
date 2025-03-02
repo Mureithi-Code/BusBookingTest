@@ -2,12 +2,17 @@ from app.extensions import db
 from app.models.bus import Bus
 from app.models.route import Route
 from app.models.booking import Booking
+from flask import jsonify
+
 
 
 class DriverService:
 
     @staticmethod
     def create_route(driver_id, data):
+        from flask import current_app
+        current_app.logger.info(f'🚍 Creating new route for Driver ID: {driver_id}')
+        current_app.logger.info(f'📦 Route Data: {data}')
         """Create a new route assigned to the logged-in driver"""
         new_route = Route(
             start_location=data['start_location'],
@@ -15,8 +20,14 @@ class DriverService:
             driver_id=driver_id
         )
         db.session.add(new_route)
-        db.session.commit()
-        return {"message": "Route created successfully"}
+        try:
+            db.session.commit()
+            current_app.logger.info(f'✅ Route created successfully for Driver ID: {driver_id}')
+            return {"message": "Route created successfully"}, 201
+        except Exception as e:
+            current_app.logger.error(f'❌ Error creating route: {str(e)}')
+            db.session.rollback()
+            return {"error": "Failed to create route"}, 500
 
     @staticmethod
     def get_driver_routes(driver_id):

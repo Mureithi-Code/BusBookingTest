@@ -32,6 +32,9 @@ class AuthService:
 
     @staticmethod
     def login(data):
+        from flask import current_app
+        current_app.logger.info(f'🔐 Login attempt for email: {data["email"]}')
+        
         user = User.query.filter_by(email=data['email']).first()
 
         if not user or not bcrypt.check_password_hash(user.password_hash, data['password']):
@@ -39,6 +42,7 @@ class AuthService:
             return jsonify({"error": "Invalid credentials"}), 401
 
         token = create_access_token(identity=str(user.id))
+        current_app.logger.info(f'✅ Login successful for {user.email} (ID: {user.id}) - Token issued')
 
         # Base response for all users
         response = {
@@ -51,4 +55,5 @@ class AuthService:
             response["driver_id"] = user.id
             response["name"] = user.name  # Optional, can be removed if not needed
 
+        current_app.logger.info(f'🔄 Returning login response: {response}')
         return jsonify(response)

@@ -76,7 +76,7 @@ class DriverService:
                 "route_id": bus.route_id,
                 "start_location": route.start_location if route else None,
                 "destination": route.destination if route else None,
-                "departure_time": bus.departure_time,  # Assuming this is in the Bus model
+                "departure_time": bus.departure_time if route else None,  # Assuming this is in the Bus model
                 "ticket_price": bus.ticket_price
             })
 
@@ -117,14 +117,19 @@ class DriverService:
 
     @staticmethod
     def set_departure_time(driver_id, bus_id, data):
-        """Set the departure time for a bus"""
+        """Set the departure time for a bus's route"""
         bus = Bus.query.filter_by(id=bus_id, driver_id=driver_id).first()
         if not bus:
             return {"error": "Bus not found or you don't own this bus"}, 404
 
-        bus.departure_time = data['departure_time']
+        if not bus.route:
+            return {"error": "This bus has no assigned route"}, 400
+
+        bus.route.departure_time = data['departure_time']  # Now correctly setting on Route
         db.session.commit()
+
         return {"message": "Departure time set successfully"}
+
 
     @staticmethod
     def set_ticket_price(driver_id, bus_id, data):

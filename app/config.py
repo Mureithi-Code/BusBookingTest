@@ -23,10 +23,7 @@ class DevelopmentConfig(Config):
 
 class ProductionConfig(Config):
     """Production configuration (Render)."""
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        'DATABASE_URI',  # Use the DATABASE_URL provided by Render
-        'postgresql://shepherd:2gNFHwMhD8dEjw2oAXNDj9gARUQ6RJCC@dpg-cuq7piqn91rc73ar9mo0-a.oregon-postgres.render.com:5432/bus_booking_db_4xim?sslmode=require'
-    )
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URI')
 
 
 # Helper function to choose config based on FLASK_ENV

@@ -16,7 +16,7 @@ class DevelopmentConfig(Config):
     """Development configuration (local)."""
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.getenv(
-        'LOCAL_DATABASE_URL',  # Local DB connection string
+        'LOCAL_DATABASE_URI',  # Local DB connection string
         'postgresql://postgres:your_local_password@localhost/busbooking_db'  # Fallback if env var missing
     )
 
@@ -24,7 +24,7 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     """Production configuration (Render)."""
     SQLALCHEMY_DATABASE_URI = os.getenv(
-        'DATABASE_URL',  # Use the DATABASE_URL provided by Render
+        'DATABASE_URI',  # Use the DATABASE_URL provided by Render
         'postgresql://shepherd:2gNFHwMhD8dEjw2oAXNDj9gARUQ6RJCC@dpg-cuq7piqn91rc73ar9mo0-a.oregon-postgres.render.com:5432/bus_booking_db_4xim?sslmode=require'
     )
 

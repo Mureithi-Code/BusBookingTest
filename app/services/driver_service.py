@@ -7,6 +7,7 @@ from flask import jsonify
 
 
 class DriverService:
+    
 
     @staticmethod
     def create_route(driver_id, data):

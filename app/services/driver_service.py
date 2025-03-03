@@ -69,7 +69,7 @@ class DriverService:
                 "bus_number": bus.bus_number,
                 "capacity": bus.capacity,
                 "available_seats": bus.available_seats,
-                "route_id": bus.route_id,
+                "route_id": bus.route.id if bus.route else None,
                 "departure_time": bus.departure_time,
                 "ticket_price": bus.ticket_price
             }

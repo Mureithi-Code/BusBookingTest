@@ -6,8 +6,6 @@ class Route(db.Model):
     destination = db.Column(db.String(100), nullable=False)
     departure_time = db.Column(db.DateTime, nullable=True)
     driver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    bus_id = db.Column(db.Integer, db.ForeignKey('bus.id'))
-    bus = db.relationship('Bus', backref='route')
 
     def __repr__(self):
         return f"<Route {self.start_location} to {self.destination}>"

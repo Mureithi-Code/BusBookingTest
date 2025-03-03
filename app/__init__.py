@@ -1,12 +1,20 @@
 import os
+from dotenv import load_dotenv
 from flask import Flask, request, current_app
 from app.extensions import db, jwt, cors, bcrypt
 from flask_migrate import Migrate
 from app.config import get_config
 from app.routes import register_routes
 
+load_dotenv()
+if os.getenv('DATABASE_URI') is None:
+    print("⚠️ Warning: DATABASE_URI not found in .env")
+else:
+    print(f"✅ DATABASE_URI found: {os.getenv('DATABASE_URI')}")
+
 def create_app():
     """Factory function to create and configure the Flask app."""
+    
     app = Flask(__name__)
 
     # Load Configuration

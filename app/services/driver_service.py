@@ -4,17 +4,13 @@ from app.models.route import Route
 from app.models.booking import Booking
 from flask import jsonify
 
-
-
 class DriverService:
-    
-
     @staticmethod
     def create_route(driver_id, data):
         from flask import current_app
         current_app.logger.info(f'🚍 Creating new route for Driver ID: {driver_id}')
         current_app.logger.info(f'📦 Route Data: {data}')
-        """Create a new route assigned to the logged-in driver"""
+
         new_route = Route(
             start_location=data['start_location'],
             destination=data['destination'],
@@ -53,7 +49,8 @@ class DriverService:
             bus_number=data['bus_number'],
             capacity=data['capacity'],
             available_seats=data['capacity'],
-            ticket_price=data.get('ticket_price', 0)
+            ticket_price=data.get('ticket_price', 0),
+            route_id=None  # Buses start with no route
         )
         db.session.add(new_bus)
         db.session.commit()
@@ -61,20 +58,28 @@ class DriverService:
 
     @staticmethod
     def get_driver_buses(driver_id):
-        """Get all buses owned by this driver"""
+        """Get all buses owned by this driver, with route details if assigned."""
+
         buses = Bus.query.filter_by(driver_id=driver_id).all()
-        bus_list = [
-            {
+
+        bus_list = []
+        for bus in buses:
+            route = None
+            if bus.route_id:
+                route = Route.query.filter_by(id=bus.route_id).first()
+
+            bus_list.append({
                 "id": bus.id,
                 "bus_number": bus.bus_number,
                 "capacity": bus.capacity,
                 "available_seats": bus.available_seats,
-                "route_id": bus.route.id if bus.route else None,
-                "departure_time": bus.departure_time,
+                "route_id": bus.route_id,
+                "start_location": route.start_location if route else None,
+                "destination": route.destination if route else None,
+                "departure_time": bus.departure_time,  # Assuming this is in the Bus model
                 "ticket_price": bus.ticket_price
-            }
-            for bus in buses
-        ]
+            })
+
         return {"buses": bus_list}
 
     @staticmethod
@@ -105,6 +110,7 @@ class DriverService:
         if not route:
             return {"error": "Route not found or you don't own this route"}, 404
 
+        # Assign route_id directly to the bus
         bus.route_id = route.id
         db.session.commit()
         return {"message": "Bus assigned to route successfully"}

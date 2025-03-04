@@ -12,10 +12,9 @@ class Bus(db.Model):
     # Relationships
     driver = db.relationship('User', backref='buses')
 
-    # This is good - keep it
-    route = db.relationship('Route', backref='buses', foreign_keys=[route_id])
+    # Use back_populates here
+    route = db.relationship('Route', back_populates='buses', foreign_keys=[route_id])
 
-    # New: Relationship to bookings - makes it easy to query all bookings on this bus
     bookings = db.relationship('Booking', backref='bus', lazy=True)
 
     def __repr__(self):

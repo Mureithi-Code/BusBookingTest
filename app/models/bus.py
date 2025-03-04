@@ -15,7 +15,7 @@ class Bus(db.Model):
     # Use back_populates here
     route = db.relationship('Route', back_populates='buses', foreign_keys=[route_id])
 
-    bookings = db.relationship('Booking', backref='bus', lazy=True)
+    bookings = db.relationship('Booking', back_populates='bus', lazy=True)
 
     def __repr__(self):
         return f"<Bus {self.bus_number} - Driver {self.driver_id}>"

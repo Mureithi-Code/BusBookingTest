@@ -6,5 +6,8 @@ class Reply(db.Model):
     content = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
 
-    # Relationship back to the Message
+    # Back link to the Message (one-to-one relationship)
     message = db.relationship('Message', back_populates='reply')
+
+    def __repr__(self):
+        return f"<Reply to message {self.message_id}>"

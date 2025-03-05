@@ -39,7 +39,7 @@ class DriverService:
                 }
                 for route in routes
             ]
-            return {"success": True, "routes": route_list}
+            return {"success": True, "routes": route_list},200
         except Exception as e:
             current_app.logger.error(f"❌ Error fetching routes for driver {driver_id}: {str(e)}")
             return ResponseHandler.error("Failed to fetch routes", 500)

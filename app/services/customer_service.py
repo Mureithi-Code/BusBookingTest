@@ -4,7 +4,7 @@ from app.models.bus import Bus
 from app.models.route import Route
 from app.models.message import Message  # Assuming this model exists
 from app.utils.response import ResponseHandler
-from app.utils.serializer import serialize_route, serialize_bus, serialize_booking, serialize_seat
+from app.serializers.serializer import serialize_route, serialize_bus, serialize_booking, serialize_seat
 
 class CustomerService:
 

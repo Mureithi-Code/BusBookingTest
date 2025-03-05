@@ -18,8 +18,6 @@ class DriverService:
             )
             db.session.add(new_route)
             db.session.commit()
-
-            current_app.logger.info(f'✅ Route created successfully for Driver ID: {driver_id}')
             return ResponseHandler.success("Route created successfully", {"route_id": new_route.id})
         except Exception as e:
             current_app.logger.error(f'❌ Error creating route: {str(e)}')
@@ -39,7 +37,7 @@ class DriverService:
                 }
                 for route in routes
             ]
-            return {"success": True, "routes": route_list},200
+            return ResponseHandler.success("Routes fetched successfully", {"routes": route_list})
         except Exception as e:
             current_app.logger.error(f"❌ Error fetching routes for driver {driver_id}: {str(e)}")
             return ResponseHandler.error("Failed to fetch routes", 500)
@@ -57,7 +55,6 @@ class DriverService:
             )
             db.session.add(new_bus)
             db.session.commit()
-
             return ResponseHandler.success("Bus added successfully", {"bus_id": new_bus.id})
         except Exception as e:
             db.session.rollback()
@@ -82,20 +79,35 @@ class DriverService:
                     "departure_time": route.departure_time if route else None,
                     "ticket_price": bus.ticket_price
                 })
-            return {"success": True, "buses": bus_list}
+            return ResponseHandler.success("Buses fetched successfully", {"buses": bus_list})
         except Exception as e:
             current_app.logger.error(f"❌ Error fetching buses for driver {driver_id}: {str(e)}")
             return ResponseHandler.error("Failed to fetch buses", 500)
 
     @staticmethod
+    def get_bus_seats(driver_id, bus_id):
+        bus = Bus.query.filter_by(id=bus_id, driver_id=driver_id).first()
+        if not bus:
+            return ResponseHandler.error("Bus not found or you don't own this bus", 404)
+
+        booked_seats = Booking.query.filter_by(bus_id=bus_id).count()
+        return ResponseHandler.success("Bus seats fetched successfully", {
+            "bus_id": bus.id,
+            "bus_number": bus.bus_number,
+            "total_seats": bus.capacity,
+            "available_seats": bus.available_seats,
+            "booked_seats": booked_seats
+        })
+
+    @staticmethod
     def assign_bus_to_route(driver_id, bus_id, route_id):
         bus = Bus.query.filter_by(id=bus_id, driver_id=driver_id).first()
         if not bus:
-            return {"success": False, "message": "Bus not found or you don't own this bus"}, 404
+            return ResponseHandler.error("Bus not found or you don't own this bus", 404)
 
         route = Route.query.filter_by(id=route_id, driver_id=driver_id).first()
         if not route:
-            return {"success": False, "message": "Route not found or you don't own this route"}, 404
+            return ResponseHandler.error("Route not found or you don't own this route", 404)
 
         try:
             bus.route_id = route.id
@@ -110,10 +122,10 @@ class DriverService:
     def set_departure_time(driver_id, bus_id, data):
         bus = Bus.query.filter_by(id=bus_id, driver_id=driver_id).first()
         if not bus:
-            return {"success": False, "message": "Bus not found or you don't own this bus"}, 404
+            return ResponseHandler.error("Bus not found or you don't own this bus", 404)
 
         if not bus.route:
-            return {"success": False, "message": "This bus has no assigned route"}, 400
+            return ResponseHandler.error("This bus has no assigned route", 400)
 
         try:
             bus.route.departure_time = data['departure_time']
@@ -128,7 +140,7 @@ class DriverService:
     def set_ticket_price(driver_id, bus_id, data):
         bus = Bus.query.filter_by(id=bus_id, driver_id=driver_id).first()
         if not bus:
-            return {"success": False, "message": "Bus not found or you don't own this bus"}, 404
+            return ResponseHandler.error("Bus not found or you don't own this bus", 404)
 
         try:
             bus.ticket_price = data['ticket_price']
@@ -143,7 +155,7 @@ class DriverService:
     def delete_bus(driver_id, bus_id):
         bus = Bus.query.filter_by(id=bus_id, driver_id=driver_id).first()
         if not bus:
-            return {"success": False, "message": "Bus not found or you don't own this bus"}, 404
+            return ResponseHandler.error("Bus not found or you don't own this bus", 404)
 
         try:
             db.session.delete(bus)

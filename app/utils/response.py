@@ -2,7 +2,7 @@ class ResponseHandler:
     @staticmethod
     def success(message, data=None):
         response = {"success": True, "message": message}
-        if data is not None:
+        if data:
             response["data"] = data
         return response, 200
 

@@ -50,6 +50,9 @@ class CustomerService:
         bus = Bus.query.get(data['bus_id'])
         if not bus:
             return ResponseHandler.error("Bus not found", 404)
+        
+        if not bus.route_id:
+            return ResponseHandler.error("This bus is not assigned to any route. You cannot book a seat.", 400)
 
         if bus.available_seats <= 0:
             return ResponseHandler.error("No available seats", 400)

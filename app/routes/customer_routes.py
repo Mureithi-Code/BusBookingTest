@@ -1,5 +1,5 @@
 from flask_restx import Namespace, Resource
-from flask import request
+from flask import request, current_app
 from app.services.customer_service import CustomerService
 
 # Define Namespace for Swagger documentation
@@ -9,6 +9,7 @@ customer_ns = Namespace("Customer", description="Customer Booking & Messaging En
 class GetAllRoutes(Resource):
     def get(self):
         """Get all available routes"""
+        current_app.logger.info("📥 [CUSTOMER] GET /customer/routes")
         response, status = CustomerService.get_all_routes()
         return response, status
 
@@ -17,6 +18,7 @@ class GetAllRoutes(Resource):
 class GetAllBuses(Resource):
     def get(self):
         """Get all available buses"""
+        current_app.logger.info("📥 [CUSTOMER] GET /customer/buses")
         response, status = CustomerService.get_all_buses()
         return response, status
 
@@ -25,6 +27,7 @@ class GetAllBuses(Resource):
 class ViewAvailableSeats(Resource):
     def get(self, bus_id):
         """View available and booked seats for a specific bus"""
+        current_app.logger.info(f"📥 [CUSTOMER] GET /customer/view_available_seats/{bus_id}")
         response, status = CustomerService.view_available_seats(bus_id)
         return response, status
 
@@ -33,6 +36,7 @@ class ViewAvailableSeats(Resource):
 class BookSeat(Resource):
     def post(self):
         """Book a seat on a selected bus"""
+        current_app.logger.info("📥 [CUSTOMER] POST /customer/book_seat")
         data = request.get_json()
         response, status = CustomerService.book_seat(data)
         return response, status
@@ -42,6 +46,7 @@ class BookSeat(Resource):
 class CancelBooking(Resource):
     def delete(self, booking_id):
         """Cancel a booking by booking ID"""
+        current_app.logger.info(f"📥 [CUSTOMER] DELETE /customer/cancel_booking/{booking_id}")
         response, status = CustomerService.cancel_booking(booking_id)
         return response, status
 
@@ -50,6 +55,7 @@ class CancelBooking(Resource):
 class EditBooking(Resource):
     def put(self, booking_id):
         """Edit a booking to change bus or seat number"""
+        current_app.logger.info(f"📥 [CUSTOMER] PUT /customer/edit_booking/{booking_id}")
         data = request.get_json()
         response, status = CustomerService.edit_booking(booking_id, data)
         return response, status
@@ -59,6 +65,7 @@ class EditBooking(Resource):
 class SendMessage(Resource):
     def post(self):
         """Send a message to the admin"""
+        current_app.logger.info("📥 [CUSTOMER] POST /customer/send_message")
         data = request.get_json()
         response, status = CustomerService.send_message_to_admin(data)
         return response, status
@@ -68,6 +75,7 @@ class SendMessage(Resource):
 class ReplyToMessage(Resource):
     def post(self, message_id):
         """Reply to an admin message by message ID"""
+        current_app.logger.info(f"📥 [CUSTOMER] POST /customer/reply_to_message/{message_id}")
         data = request.get_json()
         response, status = CustomerService.reply_to_admin_message(message_id, data)
         return response, status

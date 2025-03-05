@@ -1,13 +1,11 @@
-from flask import jsonify
-
 class ResponseHandler:
     @staticmethod
-    def success(message, data=None, status=200):
+    def success(message, data=None):
         response = {"success": True, "message": message}
-        if data:
+        if data is not None:
             response["data"] = data
-        return jsonify(response), status
+        return response, 200
 
     @staticmethod
     def error(message, status=400):
-        return jsonify({"success": False, "message": message}), status
+        return {"success": False, "message": message}, status

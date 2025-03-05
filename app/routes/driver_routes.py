@@ -2,6 +2,7 @@ from flask_restx import Namespace, Resource
 from flask import request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.driver_service import DriverService
+from app.utils.response_helper import success_response, error_response  # Optional, if you want
 
 driver_ns = Namespace("Driver", description="Driver Dashboard Endpoints")
 
@@ -60,7 +61,11 @@ class AssignRoute(Resource):
         data = request.get_json()
         driver_id = get_jwt_identity()
 
-        result = DriverService.assign_bus_to_route(driver_id, bus_id, data)
+        route_id = data.get('route_id')  # Directly extract route_id
+        if not route_id:
+            return error_response("route_id is required", 400)
+
+        result = DriverService.assign_bus_to_route(driver_id, bus_id, route_id)  # Pass route_id directly
         return jsonify(result)
 
 
@@ -82,7 +87,6 @@ class SetTicketPrice(Resource):
         data = request.get_json()
         driver_id = get_jwt_identity()
 
-        # This expects 'ticket_price', make sure the frontend sends that
         result = DriverService.set_ticket_price(driver_id, bus_id, data)
         return jsonify(result)
 

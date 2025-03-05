@@ -4,7 +4,7 @@ from app.models.bus import Bus
 from app.models.route import Route
 from app.models.booking import Booking
 from app.utils.response import ResponseHandler
-from app.serializers.serializer import serialize_route, serialize_bus
+from app.serializers.serializer import serialize_route, serialize_bus, serialize_seat
 
 class DriverService:
 

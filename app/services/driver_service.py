@@ -4,12 +4,12 @@ from app.models.bus import Bus
 from app.models.route import Route
 from app.models.booking import Booking
 from app.utils.response import ResponseHandler
+from app.serializers.serializer import serialize_route, serialize_bus
 
 class DriverService:
 
     @staticmethod
     def create_route(driver_id, data):
-        current_app.logger.info(f'🚍 Creating new route for Driver ID: {driver_id}')
         try:
             new_route = Route(
                 start_location=data['start_location'],
@@ -18,25 +18,18 @@ class DriverService:
             )
             db.session.add(new_route)
             db.session.commit()
+
             return ResponseHandler.success("Route created successfully", {"route_id": new_route.id})
         except Exception as e:
-            current_app.logger.error(f'❌ Error creating route: {str(e)}')
             db.session.rollback()
+            current_app.logger.error(f'❌ Error creating route: {str(e)}')
             return ResponseHandler.error("Failed to create route", 500)
 
     @staticmethod
     def get_driver_routes(driver_id):
         try:
             routes = Route.query.filter_by(driver_id=driver_id).all()
-            route_list = [
-                {
-                    "id": route.id,
-                    "start_location": route.start_location,
-                    "destination": route.destination,
-                    "departure_time": route.departure_time
-                }
-                for route in routes
-            ]
+            route_list = [serialize_route(route) for route in routes]
             return ResponseHandler.success("Routes fetched successfully", {"routes": route_list})
         except Exception as e:
             current_app.logger.error(f"❌ Error fetching routes for driver {driver_id}: {str(e)}")
@@ -55,6 +48,7 @@ class DriverService:
             )
             db.session.add(new_bus)
             db.session.commit()
+
             return ResponseHandler.success("Bus added successfully", {"bus_id": new_bus.id})
         except Exception as e:
             db.session.rollback()
@@ -65,20 +59,7 @@ class DriverService:
     def get_driver_buses(driver_id):
         try:
             buses = Bus.query.filter_by(driver_id=driver_id).all()
-            bus_list = []
-            for bus in buses:
-                route = bus.route
-                bus_list.append({
-                    "id": bus.id,
-                    "bus_number": bus.bus_number,
-                    "capacity": bus.capacity,
-                    "available_seats": bus.available_seats,
-                    "route_id": bus.route_id,
-                    "start_location": route.start_location if route else None,
-                    "destination": route.destination if route else None,
-                    "departure_time": route.departure_time if route else None,
-                    "ticket_price": bus.ticket_price
-                })
+            bus_list = [serialize_bus(bus) for bus in buses]
             return ResponseHandler.success("Buses fetched successfully", {"buses": bus_list})
         except Exception as e:
             current_app.logger.error(f"❌ Error fetching buses for driver {driver_id}: {str(e)}")
@@ -91,13 +72,15 @@ class DriverService:
             return ResponseHandler.error("Bus not found or you don't own this bus", 404)
 
         booked_seats = Booking.query.filter_by(bus_id=bus_id).count()
-        return ResponseHandler.success("Bus seats fetched successfully", {
+
+        data = {
             "bus_id": bus.id,
             "bus_number": bus.bus_number,
             "total_seats": bus.capacity,
             "available_seats": bus.available_seats,
             "booked_seats": booked_seats
-        })
+        }
+        return ResponseHandler.success("Bus seats fetched successfully", data)
 
     @staticmethod
     def assign_bus_to_route(driver_id, bus_id, route_id):

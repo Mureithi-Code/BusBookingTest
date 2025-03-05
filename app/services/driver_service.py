@@ -67,19 +67,31 @@ class DriverService:
 
     @staticmethod
     def get_bus_seats(driver_id, bus_id):
+        """
+        Fetch all seats for a bus, showing which are booked and which are available.
+        """
         bus = Bus.query.filter_by(id=bus_id, driver_id=driver_id).first()
         if not bus:
             return ResponseHandler.error("Bus not found or you don't own this bus", 404)
 
-        booked_seats = Booking.query.filter_by(bus_id=bus_id).count()
+        # Fetch all booked seat numbers
+        bookings = Booking.query.filter_by(bus_id=bus_id).all()
+        booked_seats = {booking.seat_number for booking in bookings}
+
+        # Create seat list with individual seat status (booked/available)
+        all_seats = [
+            serialize_seat(seat_number, seat_number in booked_seats)
+            for seat_number in range(1, bus.capacity + 1)
+        ]
 
         data = {
             "bus_id": bus.id,
             "bus_number": bus.bus_number,
             "total_seats": bus.capacity,
             "available_seats": bus.available_seats,
-            "booked_seats": booked_seats
+            "seats": all_seats  # Full seat breakdown with status
         }
+
         return ResponseHandler.success("Bus seats fetched successfully", data)
 
     @staticmethod

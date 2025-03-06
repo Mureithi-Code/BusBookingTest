@@ -49,38 +49,72 @@ class CustomerService:
     @staticmethod
     def book_seat(data):
         try:
-            # Check if required fields are in the request
-            if "customer_id" not in data or "bus_id" not in data or "seat_number" not in data:
-                return ResponseHandler.error("Missing required fields", 400)
+            current_app.logger.info(f"📌 Received booking request: {data}")
+
+            # Validate incoming data
+            required_fields = ["customer_id", "bus_id", "seat_number"]
+            for field in required_fields:
+                if field not in data:
+                    current_app.logger.error(f"❌ Missing required field: {field}")
+                    return ResponseHandler.error(f"Missing required field: {field}", 400)
 
             customer_id = data["customer_id"]
             bus_id = data["bus_id"]
             seat_number = data["seat_number"]
 
-            # Debugging logs
-            current_app.logger.info(f"📌 Booking Request: customer_id={customer_id}, bus_id={bus_id}, seat_number={seat_number}")
+            current_app.logger.info(f"🔍 Verifying bus {bus_id}")
 
             # Fetch bus
             bus = Bus.query.get(bus_id)
             if not bus:
+                current_app.logger.error(f"❌ Bus with ID {bus_id} not found.")
                 return ResponseHandler.error("Bus not found", 404)
+
+            # Ensure bus has valid available seats
+            if bus.available_seats is None or bus.available_seats < 0:
+                current_app.logger.error(f"❌ Bus {bus_id} has invalid available_seats count: {bus.available_seats}")
+                return ResponseHandler.error("Bus has invalid seat count", 500)
+
+            current_app.logger.info(f"✅ Bus {bus_id} found, available seats: {bus.available_seats}")
 
             # Check if the seat is already booked
             existing_booking = Booking.query.filter_by(bus_id=bus_id, seat_number=seat_number).first()
             if existing_booking:
-                return ResponseHandler.error("Seat already booked", 400)
+                current_app.logger.warning(f"⚠️ Seat {seat_number} on Bus {bus_id} is already booked.")
+                return ResponseHandler.error(f"Seat {seat_number} is already booked", 400)
 
-            # Create new booking
-            booking = Booking(customer_id=customer_id, bus_id=bus_id, route_id=bus.route_id, seat_number=seat_number)
+            # Ensure seat number is within bus capacity
+            if seat_number < 1 or seat_number > bus.capacity:
+                current_app.logger.error(f"❌ Seat number {seat_number} is out of range for Bus {bus_id} (capacity: {bus.capacity})")
+                return ResponseHandler.error(f"Invalid seat number {seat_number} for this bus", 400)
+
+            current_app.logger.info(f"✅ Seat {seat_number} is available on bus {bus_id}")
+
+            # Create and save booking
+            booking = Booking(
+                customer_id=customer_id,
+                bus_id=bus_id,
+                route_id=bus.route_id,
+                seat_number=seat_number
+            )
             db.session.add(booking)
-            bus.available_seats -= 1
+
+            # Update available seats
+            if bus.available_seats > 0:
+                bus.available_seats -= 1
+            else:
+                current_app.logger.error(f"❌ Bus {bus_id} has no available seats left (current: {bus.available_seats})")
+                return ResponseHandler.error("No available seats left on this bus", 400)
+
             db.session.commit()
 
+            current_app.logger.info(f"✅ Seat {seat_number} successfully booked on Bus {bus_id} for Customer {customer_id}")
+
             return ResponseHandler.success("Seat booked successfully", serialize_booking(booking), 201)
-        
+
         except Exception as e:
             db.session.rollback()
-            current_app.logger.error(f"❌ Error booking seat: {str(e)}")
+            current_app.logger.error(f"❌ Exception during seat booking: {str(e)}", exc_info=True)
             return ResponseHandler.error(f"Failed to book seat: {str(e)}", 500)
 
     @staticmethod

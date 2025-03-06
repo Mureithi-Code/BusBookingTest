@@ -47,6 +47,9 @@ class CustomerService:
 
     @staticmethod
     def book_seat(data):
+        if 'customer_id' not in data or not data['customer_id']:
+            return ResponseHandler.error("Customer ID is required.", 400)
+        
         bus = Bus.query.get(data['bus_id'])
         if not bus:
             return ResponseHandler.error("Bus not found", 404)

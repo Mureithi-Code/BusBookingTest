@@ -52,10 +52,10 @@ def serialize_message(message):
         "timestamp": message.timestamp.isoformat() if message.timestamp else None
     }
 
-def serialize_driver(driver):
+def serialize_driver(user):
     return {
-        "id": driver.id,
-        "name": driver.name,
-        "email": driver.email,
-        "phone_number": driver.phone_number
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "phone_number": user.phone_number
     }

@@ -79,3 +79,11 @@ class ReplyToMessage(Resource):
         data = request.get_json()
         response, status = CustomerService.reply_to_admin_message(message_id, data)
         return response, status
+
+@customer_ns.route("/my_bookings/<int:customer_id>")
+class GetMyBookings(Resource):
+    def get(self, customer_id):
+        """Get all bookings for a specific customer"""
+        current_app.logger.info(f"📥 [CUSTOMER] GET /customer/my_bookings/{customer_id}")
+        response, status = CustomerService.get_my_bookings(customer_id)
+        return response, status

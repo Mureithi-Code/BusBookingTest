@@ -4,7 +4,7 @@ from app.models.bus import Bus
 from app.models.route import Route
 from app.models.message import Message
 from app.utils.response import ResponseHandler
-from app.serializers.serializer import serialize_bus, serialize_route, serialize_message, serialize_user
+from app.serializers.serializer import serialize_bus, serialize_route, serialize_message, serialize_driver
 
 class AdminService:
 
@@ -30,7 +30,7 @@ class AdminService:
     def get_all_drivers():
         try:
             drivers = User.query.filter_by(role='Driver').all()
-            driver_list = [serialize_user(driver) for driver in drivers]
+            driver_list = [serialize_driver(driver) for driver in drivers]
             return ResponseHandler.success("All drivers fetched successfully", driver_list)
         except Exception as e:
             return ResponseHandler.error(f"Failed to fetch drivers: {str(e)}", 500)

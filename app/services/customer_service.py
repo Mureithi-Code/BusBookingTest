@@ -21,9 +21,9 @@ class CustomerService:
     @staticmethod
     def get_all_buses():
         try:
-            buses = Bus.query.all()
+            buses = Bus.query.filter(Bus.route_id.isnot(None)).all()
             bus_list = [serialize_bus(bus) for bus in buses]
-            return ResponseHandler.success("Buses fetched successfully", bus_list)
+            return ResponseHandler.success("Buses with routes fetched successfully", bus_list)
         except Exception as e:
             return ResponseHandler.error(f"Failed to fetch buses: {str(e)}", 500)
 

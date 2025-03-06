@@ -1,8 +1,9 @@
+from flask import current_app
 from app.extensions import db
 from app.models.booking import Booking
 from app.models.bus import Bus
 from app.models.route import Route
-from app.models.message import Message  # Assuming this model exists
+from app.models.message import Message  
 from app.utils.response import ResponseHandler
 from app.serializers.serializer import serialize_route, serialize_bus, serialize_booking, serialize_seat
 
@@ -47,40 +48,39 @@ class CustomerService:
 
     @staticmethod
     def book_seat(data):
-        if 'customer_id' not in data or not data['customer_id']:
-            return ResponseHandler.error("Customer ID is required.", 400)
-        
-        bus = Bus.query.get(data['bus_id'])
-        if not bus:
-            return ResponseHandler.error("Bus not found", 404)
-        
-        if not bus.route_id:
-            return ResponseHandler.error("This bus is not assigned to any route. You cannot book a seat.", 400)
-
-        if bus.available_seats <= 0:
-            return ResponseHandler.error("No available seats", 400)
-
-        existing_booking = Booking.query.filter_by(
-            bus_id=data['bus_id'], seat_number=data['seat_number']
-        ).first()
-
-        if existing_booking:
-            return ResponseHandler.error("Seat already booked", 400)
-
         try:
-            booking = Booking(
-                customer_id=data['customer_id'],
-                bus_id=data['bus_id'],
-                route_id=bus.route_id,
-                seat_number=data['seat_number']
-            )
-            bus.available_seats -= 1
+            # Check if required fields are in the request
+            if "customer_id" not in data or "bus_id" not in data or "seat_number" not in data:
+                return ResponseHandler.error("Missing required fields", 400)
+
+            customer_id = data["customer_id"]
+            bus_id = data["bus_id"]
+            seat_number = data["seat_number"]
+
+            # Debugging logs
+            current_app.logger.info(f"📌 Booking Request: customer_id={customer_id}, bus_id={bus_id}, seat_number={seat_number}")
+
+            # Fetch bus
+            bus = Bus.query.get(bus_id)
+            if not bus:
+                return ResponseHandler.error("Bus not found", 404)
+
+            # Check if the seat is already booked
+            existing_booking = Booking.query.filter_by(bus_id=bus_id, seat_number=seat_number).first()
+            if existing_booking:
+                return ResponseHandler.error("Seat already booked", 400)
+
+            # Create new booking
+            booking = Booking(customer_id=customer_id, bus_id=bus_id, route_id=bus.route_id, seat_number=seat_number)
             db.session.add(booking)
+            bus.available_seats -= 1
             db.session.commit()
 
             return ResponseHandler.success("Seat booked successfully", serialize_booking(booking), 201)
+        
         except Exception as e:
             db.session.rollback()
+            current_app.logger.error(f"❌ Error booking seat: {str(e)}")
             return ResponseHandler.error(f"Failed to book seat: {str(e)}", 500)
 
     @staticmethod

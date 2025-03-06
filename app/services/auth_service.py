@@ -54,6 +54,10 @@ class AuthService:
         if user.role == "Driver":
             response["driver_id"] = user.id
             response["name"] = user.name  # Optional, can be removed if not needed
+            
+        if user.role == "Customer":
+            response["customer_id"] = user.id 
+            response["name"] = user.name 
 
         current_app.logger.info(f'🔄 Returning login response: {response}')
         return jsonify(response)

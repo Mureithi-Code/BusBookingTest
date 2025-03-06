@@ -27,7 +27,7 @@ def serialize_booking(booking):
         "seat_number": booking.seat_number,
         "status": booking.status if hasattr(booking, "status") else "booked",  # fallback for customer-side
         "bus_id": booking.bus_id,
-        "user_id": booking.user_id,
+        "customer_id": booking.customer_id,
         "created_at": booking.created_at.isoformat() if booking.created_at else None
     }
 

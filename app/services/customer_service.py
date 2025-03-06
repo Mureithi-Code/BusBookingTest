@@ -181,8 +181,10 @@ class CustomerService:
     def get_my_bookings(customer_id):
         bookings = Booking.query.filter_by(customer_id=customer_id).all()
         if not bookings:
+            current_app.logger.warning(f"⚠️ No bookings found for customer {customer_id}")
             return ResponseHandler.error("No bookings found", 404)
 
         booking_list = [serialize_booking(booking) for booking in bookings]
+        current_app.logger.info(f"✅ Retrieved {len(booking_list)} bookings for customer {customer_id}")
         return ResponseHandler.success("Bookings retrieved", booking_list)
 

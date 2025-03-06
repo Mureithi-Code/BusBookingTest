@@ -86,4 +86,5 @@ class GetMyBookings(Resource):
         """Get all bookings for a specific customer"""
         current_app.logger.info(f"📥 [CUSTOMER] GET /customer/my_bookings/{customer_id}")
         response, status = CustomerService.get_my_bookings(customer_id)
+        current_app.logger.info(f"✅ Bookings Response: {response}")
         return response, status
